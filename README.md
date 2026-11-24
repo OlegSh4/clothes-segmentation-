@@ -1,64 +1,37 @@
-# Проект по сегментации изображений
+# Clothes Segmentation: U-Net vs SegFormer
 
-## Описание
-Этот проект посвящен разработке и обучению моделей для задачи сегментации изображений. В проекте используются архитектуры U-Net и Segformer для предсказания сегментационных масок на изображениях. Основное внимание уделяется сегментации одежды на изображениях людей.
+![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
+![Hugging Face](https://img.shields.io/badge/Hugging%20Face-SegFormer-FFD21E?logo=huggingface&logoColor=black)
 
-## Содержание
-- [Установка](#установка)
-- [Данные](#данные)
-- [Предобработка данных](#предобработка-данных)
-- [Модели](#модели)
-- [Обучение модели](#обучение-модели)
-- [Результаты](#результаты)
-- [Визуализация](#визуализация)
-- [Лицензия](#лицензия)
+Semantic segmentation of clothing items on photos of people (59 classes, including background). I implemented U-Net from scratch and compared it with a fine-tuned SegFormer transformer.
 
-## Установка
-Для запуска проекта необходимо установить следующие библиотеки:
+Coursework, Financial University (Moscow).
+
+## Results
+
+| Model | Training | Validation pixel accuracy |
+|---|---|---|
+| **SegFormer-B0** (fine-tuned from `nvidia/segformer-b0-finetuned-ade-512-512`) | 10 epochs | **88.9%** |
+| U-Net (from scratch) | 150 epochs | reported per class (IoU) in the notebook |
+
+The pretrained SegFormer reached high pixel accuracy after only a few epochs, which shows the value of transfer learning on a small dataset.
+
+## Approach
+
+1. **Dataset:** the People Clothing Segmentation dataset. I wrote a custom `ClothesSegmentationDataset` that returns the image and an integer mask, with shared transforms for both.
+2. **U-Net:** implemented the encoder–decoder architecture with skip connections (`ConvTranspose2d` upsampling). The output is an `n_classes × H × W` tensor, trained with cross-entropy and tracked with per-class IoU.
+3. **SegFormer:** loaded a pretrained SegFormer-B0 from Hugging Face, replaced the classification head for 59 classes and fine-tuned it.
+4. **Visualization:** compared ground-truth masks with model predictions.
+
+## Tech stack
+
+Python · PyTorch · torchvision · Hugging Face Transformers · Matplotlib
+
+## How to run
+
 ```bash
-pip install torch torchvision matplotlib PILLOW xmltodict tqdm transformers
-Вот пример README файла для вашего проекта по сегментации изображений:
-
-```markdown
-# Проект по сегментации изображений
-
-## Описание
-Этот проект посвящен разработке и обучению моделей для задачи сегментации изображений. В проекте используются архитектуры U-Net и Segformer для предсказания сегментационных масок на изображениях. Основное внимание уделяется сегментации одежды на изображениях людей.
-
-## Содержание
-- [Установка](#установка)
-- [Данные](#данные)
-- [Предобработка данных](#предобработка-данных)
-- [Модели](#модели)
-- [Обучение модели](#обучение-модели)
-- [Результаты](#результаты)
-- [Визуализация](#визуализация)
-- [Лицензия](#лицензия)
-
-## Установка
-Для запуска проекта необходимо установить следующие библиотеки:
-```bash
-pip install torch torchvision matplotlib PILLOW xmltodict tqdm transformers
+pip install torch torchvision transformers matplotlib pillow tqdm
 ```
 
-## Данные
-Данные для проекта содержатся в архиве `people-clothing-segmentation.zip`, который включает изображения людей в одежде и соответствующие сегментационные маски. Архив должен быть распакован в рабочую директорию.
-
-## Предобработка данных
-- **Распаковка архива**: Изображения и маски извлекаются из архива.
-- **Парсинг масок**: Функция `parse_xml` извлекает информацию из XML-файлов.
-- **Создание датасета**: Класс `ClothesSegmentationDataset` используется для загрузки и преобразования данных.
-
-## Модели
-В проекте используются две модели:
-1. **U-Net**: Классическая архитектура для задач сегментации.
-2. **Segformer**: Современная архитектура для сегментации изображений из пакета `transformers`.
-
-## Обучение модели
-Модели обучаются на предобработанных данных с использованием функции потерь CrossEntropyLoss. В процессе обучения выводятся значения функции потерь и точности прогнозов на обучающем и валидационном множествах.
-
-## Результаты
-Модели оцениваются на основе метрик точности и IoU. Результаты обучения и тестирования сохраняются и визуализируются.
-
-## Визуализация
-Для визуализации результатов используется функция `show_image_with_mask`, которая отображает изображения с наложенными масками. Также визуализируются предсказания моделей.
+Place `people-clothing-segmentation.zip` next to the notebook and run `Сегментация.ipynb`. A GPU is recommended.
